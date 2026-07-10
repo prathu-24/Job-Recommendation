@@ -1,0 +1,132 @@
+<!DOCTYPE html>
+<html lang="en" class="dark">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>Trajectory AI — theme preview</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Outfit:wght@500;600;700;800&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+<script src="https://cdn.tailwindcss.com"></script>
+<script>
+  tailwind.config = {
+    darkMode: "class",
+    theme: {
+      extend: {
+        colors: {
+          dark: { 50:"#F1F1F6",300:"#8B8FA3",600:"#26283D",700:"#1A1B2C",850:"#14152599",900:"#0E0F1A",950:"#0A0B14" },
+          indigo: { 300:"#8F82FA",400:"#7367F0",500:"#5B4FE8" },
+          signal: { 500:"#34D399" },
+          caution: { 400:"#FBBF24" },
+          alert: { 400:"#FB7185" },
+        },
+        fontFamily: {
+          display: ["Outfit","sans-serif"],
+          body: ["Inter","sans-serif"],
+          mono: ["JetBrains Mono","monospace"],
+        },
+      },
+    },
+  };
+</script>
+<style>
+  body {
+    background-color: #0A0B14;
+    background-image:
+      radial-gradient(120% 100% at 15% 0%, rgba(91,79,232,0.18) 0%, rgba(10,11,20,0) 55%),
+      radial-gradient(90% 70% at 100% 100%, rgba(52,211,153,0.10) 0%, rgba(10,11,20,0) 50%);
+    background-attachment: fixed;
+  }
+  .glass { background: #14152599; backdrop-filter: blur(20px); border: 1px solid rgba(255,255,255,0.06); border-radius: 1.25rem; box-shadow: 0 8px 32px 0 rgba(0,0,0,0.45), inset 0 1px 0 0 rgba(255,255,255,0.06); }
+  .glass-hover { transition: all .3s; }
+  .glass-hover:hover { border-color: rgba(91,79,232,0.3); box-shadow: 0 12px 40px 0 rgba(91,79,232,0.25); }
+  .arc-top { position: relative; }
+  .arc-top::before { content:""; position:absolute; top:0; left:0; right:0; height:2px; border-radius:1.25rem 1.25rem 0 0; background: linear-gradient(90deg, transparent 0%, rgba(91,79,232,0.9) 35%, rgba(52,211,153,0.9) 100%); opacity:.7; }
+  .data-figure { font-family:"JetBrains Mono",monospace; font-variant-numeric: tabular-nums; }
+</style>
+</head>
+<body class="text-dark-50 font-body min-h-screen">
+
+  <div class="max-w-6xl mx-auto px-8 py-8">
+    <header class="flex items-center justify-between mb-8">
+      <div>
+        <h1 class="text-2xl font-display font-semibold">Your trajectory, mapped</h1>
+        <p class="text-dark-300 text-sm mt-1">4 new matches since yesterday, sorted by fit</p>
+      </div>
+      <div class="inline-flex items-center gap-1.5 rounded-full px-3 py-1.5 text-xs font-medium font-mono bg-indigo-500/10 text-indigo-300 border border-indigo-500/20">
+        <span class="w-1.5 h-1.5 rounded-full bg-signal-500"></span>
+        Profile 92% complete
+      </div>
+    </header>
+
+    <div class="grid grid-cols-3 gap-6">
+      <div class="col-span-2 space-y-4" id="job-feed"></div>
+
+      <div class="space-y-6">
+        <div class="glass arc-top p-5">
+          <h3 class="text-sm font-display font-semibold mb-4">This week's activity</h3>
+          <div class="space-y-3">
+            <div class="flex items-center justify-between"><span class="text-sm text-dark-300">Applications sent</span><span class="data-figure text-indigo-300 font-medium">6</span></div>
+            <div class="flex items-center justify-between"><span class="text-sm text-dark-300">Recruiter replies</span><span class="data-figure text-indigo-300 font-medium">3</span></div>
+            <div class="flex items-center justify-between"><span class="text-sm text-dark-300">Interviews scheduled</span><span class="data-figure text-indigo-300 font-medium">1</span></div>
+          </div>
+        </div>
+
+        <div class="glass p-5">
+          <h3 class="text-sm font-display font-semibold mb-2">Top skill to close the gap</h3>
+          <p class="text-sm text-dark-300 mb-4">Adding <span class="text-dark-50 font-medium">system design</span> to your profile would raise your average match by an estimated 11 points.</p>
+          <button class="w-full py-2 rounded-lg bg-indigo-500 hover:bg-indigo-400 transition-colors text-sm font-medium text-white">See skill gap analysis</button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+<script>
+const jobs = [
+  { title:"Senior Product Designer", company:"Northwind Labs", location:"Remote · US", salary:"$145K–$175K", score:94, tags:["Figma","Design Systems","B2B SaaS"], posted:"2h ago" },
+  { title:"Staff Frontend Engineer", company:"Cascade Analytics", location:"Austin, TX", salary:"$160K–$195K", score:87, tags:["React","TypeScript","Data Viz"], posted:"6h ago" },
+  { title:"Product Manager, Platform", company:"Ferrous Systems", location:"Hybrid · NYC", salary:"$150K–$180K", score:71, tags:["B2B","APIs","0→1"], posted:"1d ago" },
+  { title:"Growth Marketing Lead", company:"Voyage Health", location:"Remote · US", salary:"$120K–$140K", score:48, tags:["Lifecycle","SEO","Paid Media"], posted:"2d ago" },
+];
+
+function ring(score, size=72){
+  const stroke = 7, r = (size-stroke)/2, c = 2*Math.PI*r, frac = 0.75;
+  const arcLen = c*frac, offset = arcLen - (score/100)*arcLen;
+  const tone = score>=85 ? "#34D399" : score>=65 ? "#5B4FE8" : score>=45 ? "#FBBF24" : "#FB7185";
+  return `
+    <div class="relative inline-flex items-center justify-center" style="width:${size}px;height:${size}px">
+      <svg width="${size}" height="${size}" style="transform:rotate(-135deg)">
+        <circle cx="${size/2}" cy="${size/2}" r="${r}" fill="none" stroke="rgba(255,255,255,0.06)" stroke-width="${stroke}" stroke-dasharray="${arcLen} ${c}" stroke-linecap="round"/>
+        <circle cx="${size/2}" cy="${size/2}" r="${r}" fill="none" stroke="${tone}" stroke-width="${stroke}" stroke-dasharray="${arcLen} ${c}" stroke-dashoffset="${offset}" stroke-linecap="round"/>
+      </svg>
+      <div class="absolute inset-0 flex flex-col items-center justify-center">
+        <span class="data-figure text-lg font-semibold" style="color:${tone}">${score}</span>
+        <span class="text-[9px] uppercase tracking-wider text-dark-300 font-medium">match</span>
+      </div>
+    </div>`;
+}
+
+document.getElementById("job-feed").innerHTML = jobs.map(j => `
+  <div class="glass glass-hover arc-top p-5">
+    <div class="flex items-start justify-between gap-4">
+      <div class="flex-1 min-w-0">
+        <div class="flex items-center gap-2 mb-1">
+          <h3 class="text-base font-display font-semibold truncate">${j.title}</h3>
+          <span class="text-dark-300 text-xs data-figure shrink-0">${j.posted}</span>
+        </div>
+        <p class="text-sm text-dark-300">${j.company} · ${j.location}</p>
+        <p class="text-sm text-signal-500 data-figure mt-1">${j.salary}</p>
+        <div class="flex flex-wrap gap-2 mt-3">
+          ${j.tags.map(t => `<span class="inline-flex items-center rounded-full px-2.5 py-1 text-xs font-medium bg-dark-700/60 text-dark-300 border border-white/[0.06]">${t}</span>`).join("")}
+        </div>
+      </div>
+      <div class="flex flex-col items-center gap-3 shrink-0">
+        ${ring(j.score)}
+        <button class="text-xs font-medium text-indigo-300 hover:text-indigo-200 transition-colors">View role →</button>
+      </div>
+    </div>
+  </div>
+`).join("");
+</script>
+</body>
+</html>

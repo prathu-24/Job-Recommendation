@@ -1,0 +1,91 @@
+@import url("https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Outfit:wght@500;600;700;800&family=JetBrains+Mono:wght@400;500;600&display=swap");
+
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@layer base {
+  html {
+    @apply scroll-smooth;
+  }
+
+  body {
+    @apply bg-dark-950 text-dark-50 font-body antialiased;
+    background-image: theme("backgroundImage.trajectory-glow");
+    background-attachment: fixed;
+  }
+
+  h1, h2, h3, h4 {
+    @apply font-display font-semibold tracking-tight text-dark-50;
+  }
+
+  /* numeric / data figures always render in mono for a quantitative feel */
+  .data-figure {
+    @apply font-mono tabular-nums;
+  }
+
+  ::selection {
+    @apply bg-indigo-500/40 text-dark-50;
+  }
+
+  /* visible keyboard focus everywhere, respecting the glass aesthetic */
+  :focus-visible {
+    outline: 2px solid theme("colors.indigo.400");
+    outline-offset: 2px;
+    border-radius: 4px;
+  }
+
+  ::-webkit-scrollbar {
+    width: 10px;
+    height: 10px;
+  }
+  ::-webkit-scrollbar-track {
+    @apply bg-dark-950;
+  }
+  ::-webkit-scrollbar-thumb {
+    @apply bg-dark-600 rounded-full;
+  }
+  ::-webkit-scrollbar-thumb:hover {
+    @apply bg-indigo-700;
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    *, *::before, *::after {
+      animation-duration: 0.01ms !important;
+      animation-iteration-count: 1 !important;
+      transition-duration: 0.01ms !important;
+      scroll-behavior: auto !important;
+    }
+  }
+}
+
+@layer components {
+  /* Core glassmorphic surface used across cards, panels, modals */
+  .glass-panel {
+    @apply bg-dark-850 backdrop-blur-glass border border-white/[0.06] rounded-xl2 shadow-glass;
+  }
+
+  .glass-panel-interactive {
+    @apply glass-panel transition-all duration-300 hover:border-indigo-500/30 hover:shadow-glass-hover;
+  }
+
+  /* the signature "trajectory arc" top-border treatment */
+  .arc-border-top {
+    position: relative;
+  }
+  .arc-border-top::before {
+    content: "";
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    height: 2px;
+    background: theme("backgroundImage.arc-stroke");
+    border-radius: 1.25rem 1.25rem 0 0;
+    opacity: 0.7;
+  }
+
+  .pill {
+    @apply inline-flex items-center gap-1.5 rounded-full px-2.5 py-1 text-xs font-medium font-mono;
+  }
+}
