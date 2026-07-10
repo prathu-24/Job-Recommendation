@@ -1,3 +1,4 @@
+
 # AI-Powered Job Recommendation System Using Resume Parsing
 
 An enterprise-ready, full-stack AI-Powered Job Recommendation System. Candidates upload resumes (PDF/DOCX), qualifications are parsed and normalized, and matches are calculated using semantic word embeddings and heuristic match rules against active job postings.
@@ -211,3 +212,6 @@ A set of initial users can be registered directly from the frontend UI interface
 1. **Candidate User**: Role `candidate` (Upload resume, review semantic match recommendations).
 2. **Recruiter User**: Role `recruiter` (Create job postings, inspect candidate resumes and change application workflow status).
 3. **Admin User**: Role `admin` (Verify registered accounts audit and view dashboard analytics charts).
+=======
+# Job-Recommendation
+8f3a48150c52af79da064b69293c922d9ed5ce24
