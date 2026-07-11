@@ -11,8 +11,7 @@ import {
   BarChart3, 
   Users, 
   Settings, 
-  Sparkles,
-  Truck
+  Sparkles
 } from 'lucide-react';
 
 const Sidebar: React.FC = () => {
@@ -41,7 +40,6 @@ const Sidebar: React.FC = () => {
           { to: '/admin/users', label: 'Manage Users', icon: <Users size={20} /> },
           { to: '/manage-jobs', label: 'All Jobs', icon: <Briefcase size={20} /> },
           { to: '/admin/analytics', label: 'Analytics', icon: <BarChart3 size={20} /> },
-          { to: '/admin/fleet', label: 'Fleet Dispatch', icon: <Truck size={20} /> },
         ];
       default:
         return [];

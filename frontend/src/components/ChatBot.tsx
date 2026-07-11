@@ -94,11 +94,16 @@ export const ChatBot: React.FC = () => {
 
   // Predefined quick action prompts
   const quickActions = [
-    { label: '📝 Resume Tips', prompt: 'Give me tips to improve my resume' },
-    { label: '🚀 Recommend Jobs', prompt: 'What recommended jobs do I have?' },
-    { label: '📚 Study Python', prompt: 'Suggest courses for Python' },
-    { label: '🔒 AWS Cloud', prompt: 'Suggest courses for AWS' }
+    { label: '🚀 Recommend Jobs', prompt: 'What recommended jobs do I have based on my resume?' },
+    { label: '📝 Resume Tips', prompt: 'Give me tips to improve my resume for better job matching' },
+    { label: '🔍 Skill Gap Analysis', prompt: 'What skills am I missing for my top matched job?' },
+    { label: '🏢 Company Jobs', prompt: 'Find jobs at Google or Microsoft' },
+    { label: '📚 Course Suggestions', prompt: 'Suggest courses to improve my skills for better job opportunities' },
+    { label: '💼 Search Positions', prompt: 'Find React Developer or Python Engineer positions' },
+    { label: '🎯 Interview Prep', prompt: 'How should I prepare for a technical interview?' },
+    { label: '🗺️ Career Roadmap', prompt: 'What career roadmap should I follow as a software developer?' },
   ];
+
 
   if (!isAuthenticated) return null;
 

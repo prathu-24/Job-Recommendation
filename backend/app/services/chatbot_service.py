@@ -275,7 +275,7 @@ def generate_chatbot_response(user_message: str, current_user: User, db: Session
         return res_msg
 
     # Intent 6: Course suggestions for arbitrary technology (e.g. "suggest courses for aws")
-    tech_match = re.search(r'(?:learn|course|suggest courses for|how to learn|study)\s+([a-zA-Z0-9\s\+\#\-\.]+)', msg)
+    tech_match = re.search(r'(?:learn|course|suggest courses?|how to learn|study|improve my skills)[\s\w]*?(?:for|in|about)?\s+([a-zA-Z0-9\s\+\#\-\.]+)', msg)
     if tech_match:
         tech = tech_match.group(1).strip()
         matched_courses = []
@@ -288,16 +288,137 @@ def generate_chatbot_response(user_message: str, current_user: User, db: Session
             for c in matched_courses:
                 res_msg += f"• **[{c['title']}]({c['url']})** on *{c['platform']}*\n"
             return res_msg
-        else:
-            return f"I don't have specific course suggestions cataloged for '{tech}'. However, I recommend checking out top platforms like **Coursera** or **Udemy** for search terms related to '{tech}'!"
+    
+    # Also match "suggest courses" without a specific tech
+    if any(keyword in msg for keyword in ["suggest course", "course suggestion", "improve my skills", "skill improvement", "better job"]):
+        name = current_user.name.split()[0] if current_user.name else "there"
+        skills_text = ""
+        if profile and profile.skills:
+            skills_text = f"\n\nBased on your current skills (*{profile.skills}*), here are areas you could strengthen:\n"
+        
+        res_msg = f"Great initiative, {name}! 📚 Here are top courses to boost your career:\n"
+        if skills_text:
+            res_msg += skills_text
+        res_msg += (
+            "\n**🐍 Python & Data Science:**\n"
+            "• [Python for Everybody](https://www.coursera.org/specializations/python) — Coursera\n"
+            "• [Data Science Bootcamp](https://www.udemy.com/course/python-for-data-science-and-machine-learning-bootcamp/) — Udemy\n\n"
+            "**⚛️ Web Development:**\n"
+            "• [React - The Complete Guide](https://www.udemy.com/course/react-the-complete-guide-incl-redux/) — Udemy\n"
+            "• [The Complete JavaScript Course](https://www.udemy.com/course/the-complete-javascript-course-for-beginners/) — Udemy\n\n"
+            "**☁️ Cloud & DevOps:**\n"
+            "• [AWS Certified Cloud Practitioner](https://www.udemy.com/course/aws-certified-cloud-practitioner-training-course/) — Udemy\n"
+            "• [Docker for DevOps](https://www.udemy.com/course/docker-technologies-for-devops-and-developers/) — Udemy\n\n"
+            "💡 *Tell me a specific skill (e.g., 'suggest courses for React') for more targeted suggestions!*"
+        )
+        return res_msg
 
-    # Intent 7: Default Fallback
+    # Intent 7: Interview Preparation
+    if any(keyword in msg for keyword in ["interview", "prepare for", "preparation", "crack", "ace the"]):
+        name = current_user.name.split()[0] if current_user.name else "there"
+        skills_info = ""
+        if profile and profile.skills:
+            skills_info = f"\n\n📋 Based on your skills (*{profile.skills}*), focus your prep on these areas specifically.\n"
+        
+        return (
+            f"Great question, {name}! 🎯 Here's a complete interview preparation guide:\n\n"
+            "**📝 Resume & Application Phase:**\n"
+            "• Tailor your resume for each job — match keywords from the job description\n"
+            "• Prepare a 60-second elevator pitch about yourself\n"
+            "• Research the company's products, culture, and recent news\n\n"
+            "**💻 Technical Interview:**\n"
+            "• Practice data structures & algorithms on **LeetCode** or **HackerRank**\n"
+            "• Review system design concepts (scalability, databases, APIs)\n"
+            "• Be ready to code on a whiteboard — practice thinking out loud\n"
+            "• Know your projects inside-out — expect deep-dive questions\n\n"
+            "**🗣️ Behavioral Interview (STAR Method):**\n"
+            "• **S**ituation — Describe the context\n"
+            "• **T**ask — Explain what you needed to do\n"
+            "• **A**ction — Detail the steps you took\n"
+            "• **R**esult — Share the outcome and impact\n\n"
+            "**🔑 Common Questions to Prepare:**\n"
+            "• 'Tell me about a challenging project you worked on'\n"
+            "• 'How do you handle tight deadlines?'\n"
+            "• 'Why do you want to work at this company?'\n"
+            "• 'Where do you see yourself in 5 years?'\n\n"
+            "**📚 Recommended Resources:**\n"
+            "• [Cracking the Coding Interview](https://www.crackingthecodinginterview.com/) — Book\n"
+            "• [LeetCode](https://leetcode.com/) — Practice Problems\n"
+            "• [Pramp](https://www.pramp.com/) — Free Mock Interviews\n"
+            f"{skills_info}"
+            "\n💡 *Tip: Practice mock interviews with a friend and time yourself!*"
+        )
+
+    # Intent 8: Career Roadmap
+    if any(keyword in msg for keyword in ["roadmap", "career path", "career roadmap", "career plan", "career guide", "growth plan", "what should i learn"]):
+        name = current_user.name.split()[0] if current_user.name else "there"
+        skills_info = ""
+        if profile and profile.skills:
+            skills_info = f"\n📋 Your current skills: *{profile.skills}*\n"
+        
+        return (
+            f"Here's a career roadmap for you, {name}! 🗺️\n\n"
+            f"{skills_info}"
+            "\n**🟢 Stage 1: Foundation (0-1 Years)**\n"
+            "• Master a primary language (Python, JavaScript, or Java)\n"
+            "• Learn Git, Linux basics, and command line\n"
+            "• Build 2-3 personal projects with real-world use cases\n"
+            "• Create a strong resume and LinkedIn profile\n\n"
+            "**🔵 Stage 2: Specialization (1-2 Years)**\n"
+            "• Choose a domain: Web Dev, Data Science, DevOps, or Mobile\n"
+            "• Learn frameworks (React, Django, TensorFlow, etc.)\n"
+            "• Contribute to open-source projects on GitHub\n"
+            "• Get an internship or freelance experience\n\n"
+            "**🟣 Stage 3: Professional Growth (2-4 Years)**\n"
+            "• Learn system design and architecture patterns\n"
+            "• Get cloud certifications (AWS, GCP, or Azure)\n"
+            "• Build leadership and communication skills\n"
+            "• Start mentoring junior developers\n\n"
+            "**🟡 Stage 4: Senior / Leadership (4+ Years)**\n"
+            "• Specialize in architecture or management track\n"
+            "• Lead cross-functional projects\n"
+            "• Develop expertise in emerging tech (AI/ML, Blockchain, etc.)\n\n"
+            "**🔗 Useful Roadmap Resources:**\n"
+            "• [roadmap.sh](https://roadmap.sh/) — Interactive developer roadmaps\n"
+            "• [freeCodeCamp](https://www.freecodecamp.org/) — Free coding curriculum\n"
+            "• [The Odin Project](https://www.theodinproject.com/) — Full-stack path\n\n"
+            "💡 *Tell me your target role (e.g., 'roadmap for data scientist') for a more personalized plan!*"
+        )
+
+    # Intent 9: Company-specific job search
+    company_match = re.search(r'(?:jobs?\s+(?:at|in|for)|(?:at|in|for)\s+\w+\s+jobs?|work\s+(?:at|for|in))\s+([a-zA-Z0-9\s\&\-\.]+)', msg)
+    if company_match:
+        company_name = company_match.group(1).strip()
+        jobs = db.query(Job).filter(
+            Job.company.ilike(f"%{company_name}%")
+        ).limit(5).all()
+        
+        if jobs:
+            res_msg = f"🏢 Found **{len(jobs)} job(s)** at **{company_name.title()}**:\n\n"
+            for job in jobs:
+                res_msg += f"• **{job.title}** — {job.location or 'Remote'} (Requires: {job.required_skills})\n"
+            res_msg += "\n💡 *Ask 'what skills do I need for [Job Title]?' for a gap analysis!*"
+            return res_msg
+        else:
+            return (
+                f"I couldn't find any open jobs at **{company_name.title()}** on Jobify right now. 😕\n\n"
+                "Here's what you can do:\n"
+                "• Check the **Jobs** page for all current openings\n"
+                "• Try a broader search like 'find Python jobs' or 'find React positions'\n"
+                f"• Visit {company_name.title()}'s career page directly for their latest postings"
+            )
+
+    # Intent 10: Default Fallback
     name = current_user.name.split()[0] if current_user.name else "candidate"
     return (
-        f"I'm here to help, {name}! But I didn't quite catch the intent. \n\n"
-        "Try asking one of these questions:\n"
-        "• *'What recommended jobs do I have?'*\n"
-        "• *'Suggest courses for Python'* or *'suggest courses for AWS'*\n"
-        "• *'Give me tips to improve my resume'*\n"
-        "• *'What skills do I need for Meta?'* (if Meta has an open job)"
+        f"I'm here to help, {name}! 😊 Here are the things I can assist you with:\n\n"
+        "🚀 **Job Search** — *'What recommended jobs do I have?'* or *'Find Python jobs'*\n"
+        "📝 **Resume Tips** — *'Give me tips to improve my resume'*\n"
+        "🔍 **Skill Gap Analysis** — *'What skills do I need for [Job Title]?'*\n"
+        "🏢 **Company Jobs** — *'Find jobs at Google'*\n"
+        "📚 **Course Suggestions** — *'Suggest courses for React'* or *'Suggest courses for AWS'*\n"
+        "🎯 **Interview Prep** — *'How should I prepare for a technical interview?'*\n"
+        "🗺️ **Career Roadmap** — *'What career roadmap should I follow?'*\n\n"
+        "Just pick any topic above and ask away! 💬"
     )
+

@@ -18,7 +18,6 @@ import CreateJobPage from './pages/CreateJobPage';
 import ManageJobsPage from './pages/ManageJobsPage';
 import AdminUsersPage from './pages/AdminUsersPage';
 import AdminAnalyticsPage from './pages/AdminAnalyticsPage';
-import AdminFleetPage from './pages/AdminFleetPage';
 import SettingsPage from './pages/SettingsPage';
 import NotFoundPage from './pages/NotFoundPage';
 
@@ -203,16 +202,7 @@ export const AppContent: React.FC = () => {
             </ProtectedRoute>
           } 
         />
-        <Route 
-          path="/admin/fleet" 
-          element={
-            <ProtectedRoute>
-              <AdminOnlyRoute>
-                <Layout><AdminFleetPage /></Layout>
-              </AdminOnlyRoute>
-            </ProtectedRoute>
-          } 
-        />
+
 
         {/* Settings (all authenticated roles) */}
         <Route 
