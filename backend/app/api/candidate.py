@@ -73,6 +73,15 @@ def upload_resume(
         profile.certifications = parsed_data.get("certifications")
         profile.languages = parsed_data.get("languages")
         
+        # Generate and save embedding
+        try:
+            from app.services.embedding_service import generate_embedding, get_candidate_text_for_embedding
+            candidate_text = get_candidate_text_for_embedding(profile)
+            profile.embedding = generate_embedding(candidate_text)
+            print(f"[Candidate API] Generated resume embedding for candidate {current_user.id}")
+        except Exception as emb_err:
+            print(f"Failed to generate candidate embedding on upload: {emb_err}")
+            
         # Synchronize/Update the main User account details if successfully parsed!
         if parsed_data.get("name") and parsed_data.get("name") != "Candidate Name":
             current_user.name = parsed_data.get("name")
@@ -148,6 +157,15 @@ def update_profile(
     update_data = profile_in.dict(exclude_unset=True)
     for field in update_data:
         setattr(profile, field, update_data[field])
+        
+    # Regenerate and save embedding
+    try:
+        from app.services.embedding_service import generate_embedding, get_candidate_text_for_embedding
+        candidate_text = get_candidate_text_for_embedding(profile)
+        profile.embedding = generate_embedding(candidate_text)
+        print(f"[Candidate API] Regenerated resume embedding for candidate {current_user.id} on update")
+    except Exception as emb_err:
+        print(f"Failed to regenerate candidate embedding on profile update: {emb_err}")
         
     try:
         db.commit()
@@ -258,4 +276,98 @@ def get_my_applications(
             }
         })
     return result
+
+@router.get("/recommendations/rag")
+def get_rag_recommendations(
+    current_user: User = Depends(get_candidate),
+    db: Session = Depends(get_db)
+):
+    profile = db.query(CandidateProfile).filter(CandidateProfile.user_id == current_user.id).first()
+    if not profile:
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND,
+            detail="Candidate profile not found. Please upload a resume first."
+        )
+        
+    from app.services.embedding_service import generate_embedding, get_candidate_text_for_embedding
+    
+    # Check if profile has an embedding, otherwise generate it dynamically
+    embedding_list = None
+    if not profile.embedding:
+        try:
+            candidate_text = get_candidate_text_for_embedding(profile)
+            embedding_list = generate_embedding(candidate_text)
+            profile.embedding = embedding_list
+            db.commit()
+            db.refresh(profile)
+            print(f"[RAG Endpoint] Dynamically generated embedding for candidate {current_user.id}")
+        except Exception as e:
+            print(f"[RAG Endpoint] Failed to generate embedding: {e}")
+            raise HTTPException(
+                status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+                detail=f"Failed to generate candidate profile embedding: {e}"
+            )
+    else:
+        # Decode/retrieve the embedding list safely
+        import json
+        if isinstance(profile.embedding, str):
+            try:
+                embedding_list = json.loads(profile.embedding)
+            except Exception:
+                try:
+                    embedding_list = [float(x) for x in profile.embedding.split(",") if x.strip()]
+                except Exception:
+                    pass
+        elif isinstance(profile.embedding, list):
+            embedding_list = profile.embedding
+        else:
+            try:
+                embedding_list = list(profile.embedding)
+            except Exception:
+                pass
+                
+    if not embedding_list or len(embedding_list) != 384:
+        # Regenerate if corrupt or invalid dimension
+        try:
+            candidate_text = get_candidate_text_for_embedding(profile)
+            embedding_list = generate_embedding(candidate_text)
+            profile.embedding = embedding_list
+            db.commit()
+            db.refresh(profile)
+        except Exception as e:
+            raise HTTPException(
+                status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+                detail="Candidate profile embedding is missing or corrupt and could not be regenerated."
+            )
+            
+    # Search top 5 semantically similar jobs
+    from app.services.vector_search_service import search_similar_jobs
+    similar_jobs_with_scores = search_similar_jobs(db, embedding_list, top_k=5)
+    
+    if not similar_jobs_with_scores:
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND,
+            detail="No matching jobs found in the database. Please ensure jobs are posted."
+        )
+        
+    # Extract jobs list and candidate text
+    jobs = [job for job, score in similar_jobs_with_scores]
+    candidate_text = get_candidate_text_for_embedding(profile)
+    
+    # Generate RAG recommendations
+    from app.services.rag_service import generate_rag_recommendations
+    rag_result = generate_rag_recommendations(candidate_text, jobs)
+    
+    # Attach retrieved job ids and scores for tracing/debugging or display
+    rag_result["retrieved_jobs"] = [
+        {
+            "job_id": job.id,
+            "title": job.title,
+            "company": job.company,
+            "similarity_score": round(score * 100, 2)
+        }
+        for job, score in similar_jobs_with_scores
+    ]
+    
+    return rag_result
 

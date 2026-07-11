@@ -1,6 +1,6 @@
 from sqlalchemy import Column, Integer, String, Text, ForeignKey
 from sqlalchemy.orm import relationship
-from app.database.session import Base
+from app.database.session import Base, get_vector_type
 
 class CandidateProfile(Base):
     __tablename__ = "candidate_profiles"
@@ -17,6 +17,7 @@ class CandidateProfile(Base):
     projects = Column(Text, nullable=True)        # Stored text representation of projects
     certifications = Column(Text, nullable=True)  # Stored text representation of certs
     languages = Column(Text, nullable=True)       # Comma-separated list of languages
+    embedding = Column(get_vector_type(384), nullable=True)
 
     # Relationships
     user = relationship("User", back_populates="profile")

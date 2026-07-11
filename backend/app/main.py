@@ -12,6 +12,13 @@ from typing import List
 # Auto-create database tables on startup (dynamic fail-safe)
 Base.metadata.create_all(bind=engine)
 
+# Run custom migrations to add vector/embedding columns
+try:
+    from app.database.migration import run_migrations
+    run_migrations()
+except Exception as e:
+    print(f"Failed to run database migrations on startup: {e}")
+
 # Auto-seed the admin user to ensure admin@jobify.com exists with role ADMIN
 from app.database.session import SessionLocal
 from app.models.user import User, UserRole

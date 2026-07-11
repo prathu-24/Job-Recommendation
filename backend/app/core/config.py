@@ -34,6 +34,18 @@ class Settings(BaseSettings):
     # Groq API Key
     GROQ_API_KEY: str = os.getenv("GROQ_API_KEY", "")
 
+    # Gemini API Key
+    GEMINI_API_KEY: str = os.getenv("GEMINI_API_KEY", "")
+
+    # OpenAI API Key
+    OPENAI_API_KEY: str = os.getenv("OPENAI_API_KEY", "")
+
+    # Ollama URL
+    OLLAMA_URL: str = os.getenv("OLLAMA_URL", "http://localhost:11434")
+
+    # LLM Provider
+    LLM_PROVIDER: str = os.getenv("LLM_PROVIDER", "")
+
     # File Uploads
     UPLOAD_DIR: str = os.getenv("UPLOAD_DIR", "uploads/resumes")
     MAX_UPLOAD_SIZE: int = 10 * 1024 * 1024  # 10MB

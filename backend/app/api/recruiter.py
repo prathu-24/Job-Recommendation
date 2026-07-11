@@ -31,6 +31,14 @@ def create_job(
         salary=job_in.salary,
         experience_required=job_in.experience_required
     )
+    
+    # Generate and set embedding
+    try:
+        from app.services.embedding_service import generate_embedding, get_job_text_for_embedding
+        db_job.embedding = generate_embedding(get_job_text_for_embedding(db_job))
+    except Exception as emb_err:
+        print(f"Failed to generate job embedding on creation: {emb_err}")
+        
     db.add(db_job)
     try:
         db.commit()
@@ -75,6 +83,13 @@ def update_job(
     update_data = job_in.dict(exclude_unset=True)
     for field in update_data:
         setattr(job, field, update_data[field])
+        
+    # Regenerate and set embedding
+    try:
+        from app.services.embedding_service import generate_embedding, get_job_text_for_embedding
+        job.embedding = generate_embedding(get_job_text_for_embedding(job))
+    except Exception as emb_err:
+        print(f"Failed to regenerate job embedding on update: {emb_err}")
         
     try:
         db.commit()
