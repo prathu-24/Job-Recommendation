@@ -9,8 +9,34 @@ connect_args = {}
 if settings.DATABASE_URL.startswith("sqlite"):
     connect_args = {"check_same_thread": False}
 
+from urllib.parse import urlsplit, parse_qsl, urlencode, urlunsplit
+
+def clean_db_url(url: str) -> str:
+    """Normalize URL scheme and remove unsupported query parameters like 'supa'."""
+    if url.startswith("postgres://"):
+        url = url.replace("postgres://", "postgresql://", 1)
+    try:
+        parts = urlsplit(url)
+        if parts.query:
+            # Keep only standard/supported parameters
+            allowed_params = {
+                'sslmode', 'sslcert', 'sslkey', 'sslrootcert', 'connect_timeout',
+                'application_name', 'keepalives', 'keepalives_idle'
+            }
+            filtered_query = [
+                (k, v) for k, v in parse_qsl(parts.query)
+                if k.lower() in allowed_params
+            ]
+            parts = parts._replace(query=urlencode(filtered_query))
+            return urlunsplit(parts)
+    except Exception:
+        pass
+    return url
+
+db_url = clean_db_url(settings.DATABASE_URL)
+
 engine = create_engine(
-    settings.DATABASE_URL,
+    db_url,
     connect_args=connect_args,
     pool_pre_ping=True
 )
@@ -20,12 +46,10 @@ SessionLocal = sessionmaker(autocommit=False, autoflush=False, bind=engine)
 Base = declarative_base()
 
 def check_pgvector():
-    if not settings.DATABASE_URL.startswith("postgresql"):
+    if not settings.DATABASE_URL.startswith("postgresql") and not settings.DATABASE_URL.startswith("postgres"):
         return False
     try:
-        dsn = settings.DATABASE_URL
-        if dsn.startswith("postgres://"):
-            dsn = dsn.replace("postgres://", "postgresql://", 1)
+        dsn = clean_db_url(settings.DATABASE_URL)
         conn = psycopg2.connect(dsn)
         cur = conn.cursor()
         try:

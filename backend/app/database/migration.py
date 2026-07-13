@@ -1,7 +1,7 @@
 import psycopg2
 import sqlite3
 from app.core.config import settings
-from app.database.session import PGVECTOR_SUPPORTED
+from app.database.session import PGVECTOR_SUPPORTED, clean_db_url
 
 def run_migrations():
     """
@@ -41,11 +41,9 @@ def run_migrations():
         except Exception as e:
             print(f"[Migration] SQLite migration failed: {e}")
             
-    elif db_url.startswith("postgresql"):
+    elif db_url.startswith("postgresql") or db_url.startswith("postgres://"):
         try:
-            dsn = db_url
-            if dsn.startswith("postgres://"):
-                dsn = dsn.replace("postgres://", "postgresql://", 1)
+            dsn = clean_db_url(db_url)
             conn = psycopg2.connect(dsn)
             cursor = conn.cursor()
             
