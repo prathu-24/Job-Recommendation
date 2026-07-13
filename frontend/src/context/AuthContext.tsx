@@ -31,7 +31,8 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     }
 
     try {
-      const response = await api.get('/api/v1/auth/me');
+      const response = await api.get('/auth/me');
+
       setUser(response.data);
       setRole(response.data.role);
     } catch (error) {
@@ -50,7 +51,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     setLoading(true);
 
     try {
-      const response = await api.post('/api/v1/auth/login', {
+      const response = await api.post('/auth/login', {
         email,
         password,
       });
@@ -78,7 +79,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     setLoading(true);
 
     try {
-      await api.post('/api/v1/auth/register', {
+      await api.post('/auth/register', {
         name,
         email,
         password,
