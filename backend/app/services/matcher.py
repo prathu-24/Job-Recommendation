@@ -7,24 +7,27 @@ from app.models.job import Job
 from app.models.candidate import CandidateProfile
 from app.models.recommendation import Recommendation
 
-# Fallback structures for SentenceTransformer
-try:
-    from sentence_transformers import SentenceTransformer, util
-    # Disable PyTorch progress bars/warnings to keep output clean
-    import os
-    os.environ["TOKENIZERS_PARALLELISM"] = "false"
-    try:
-        model = SentenceTransformer("all-MiniLM-L6-v2")
-    except Exception as model_err:
-        print(f"Failed to load sentence-transformer model: {model_err}. Using TF-IDF fallback.")
-        model = None
-except ImportError:
-    print("sentence-transformers not installed. Using TF-IDF fallback.")
-    model = None
+# Lazy-loaded SentenceTransformer model — only loaded when actually needed
+# to avoid blowing past memory limits on constrained environments (e.g. Render free tier)
+_model = None
+_model_attempted = False
 
-# TF-IDF fallback imports
-from sklearn.feature_extraction.text import TfidfVectorizer
-from sklearn.metrics.pairwise import cosine_similarity
+def _get_matcher_model():
+    """Lazy-load SentenceTransformer model on first use."""
+    global _model, _model_attempted
+    if _model_attempted:
+        return _model
+    _model_attempted = True
+    try:
+        import os
+        from sentence_transformers import SentenceTransformer
+        os.environ["TOKENIZERS_PARALLELISM"] = "false"
+        _model = SentenceTransformer("all-MiniLM-L6-v2")
+        print("[Matcher] SentenceTransformer model loaded successfully.")
+    except Exception as e:
+        print(f"[Matcher] Failed to load sentence-transformer model: {e}. Using TF-IDF fallback.")
+        _model = None
+    return _model
 
 def calculate_skill_match(candidate_skills: str, job_skills: str) -> float:
     """Calculate skill match percentage (40% weight)."""
@@ -121,11 +124,13 @@ def calculate_keyword_similarity(candidate_text: str, job_text: str) -> float:
     if not candidate_text.strip() or not job_text.strip():
         return 0.0
         
-    # Try SentenceTransformers if available
-    if model:
+    # Try SentenceTransformers if available (lazy-loaded)
+    st_model = _get_matcher_model()
+    if st_model:
         try:
-            emb1 = model.encode(candidate_text, convert_to_tensor=True)
-            emb2 = model.encode(job_text, convert_to_tensor=True)
+            from sentence_transformers import util
+            emb1 = st_model.encode(candidate_text, convert_to_tensor=True)
+            emb2 = st_model.encode(job_text, convert_to_tensor=True)
             cosine_score = util.cos_sim(emb1, emb2).item()
             # Normalize from [-1, 1] to [0, 1]
             score = max(0.0, cosine_score)
@@ -135,6 +140,8 @@ def calculate_keyword_similarity(candidate_text: str, job_text: str) -> float:
             
     # TF-IDF Fallback
     try:
+        from sklearn.feature_extraction.text import TfidfVectorizer
+        from sklearn.metrics.pairwise import cosine_similarity
         vectorizer = TfidfVectorizer(stop_words='english')
         tfidf = vectorizer.fit_transform([candidate_text, job_text])
         score = cosine_similarity(tfidf[0:1], tfidf[1:2])[0][0]
