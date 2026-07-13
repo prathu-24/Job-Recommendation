@@ -1,7 +1,8 @@
 import axios, { InternalAxiosRequestConfig } from "axios";
 
-// Render backend URL (NO /api/v1 here)
-const API_URL = "https://job-recommendation-8ccg.onrender.com";
+// Uses VITE_API_URL if defined (e.g. for local dev proxy),
+// otherwise defaults to the production Render backend API endpoint.
+const API_URL = import.meta.env.VITE_API_URL || "https://job-recommendation-8ccg.onrender.com/api/v1";
 
 const api = axios.create({
   baseURL: API_URL,
@@ -41,7 +42,7 @@ api.interceptors.response.use(
       if (refreshToken) {
         try {
           const res = await axios.post(
-            `${API_URL}/api/v1/auth/refresh`,
+            `${API_URL}/auth/refresh`,
             {
               refresh_token: refreshToken,
             }
