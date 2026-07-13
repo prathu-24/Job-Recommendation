@@ -1,7 +1,7 @@
 import axios, { InternalAxiosRequestConfig } from "axios";
 
-// Direct Render backend URL
-const API_URL = "https://job-recommendation-8ccg.onrender.com/api/v1";
+// Render backend URL (NO /api/v1 here)
+const API_URL = "https://job-recommendation-8ccg.onrender.com";
 
 const api = axios.create({
   baseURL: API_URL,
@@ -24,7 +24,7 @@ api.interceptors.request.use(
   (error) => Promise.reject(error)
 );
 
-// Automatically refresh expired access tokens
+// Refresh token automatically
 api.interceptors.response.use(
   (response) => response,
   async (error) => {
@@ -41,7 +41,7 @@ api.interceptors.response.use(
       if (refreshToken) {
         try {
           const res = await axios.post(
-            `${API_URL}/auth/refresh`,
+            `${API_URL}/api/v1/auth/refresh`,
             {
               refresh_token: refreshToken,
             }

@@ -22,14 +22,16 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
 
   const checkAuth = async () => {
     const token = localStorage.getItem('access_token');
+
     if (!token) {
       setUser(null);
       setRole(null);
       setLoading(false);
       return;
     }
+
     try {
-      const response = await api.get('/auth/me');
+      const response = await api.get('/api/v1/auth/me');
       setUser(response.data);
       setRole(response.data.role);
     } catch (error) {
@@ -46,14 +48,19 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
 
   const login = async (email: string, password: string) => {
     setLoading(true);
+
     try {
-      const response = await api.post('/auth/login', { email, password });
+      const response = await api.post('/api/v1/auth/login', {
+        email,
+        password,
+      });
+
       const { access_token, refresh_token, role } = response.data;
-      
+
       localStorage.setItem('access_token', access_token);
       localStorage.setItem('refresh_token', refresh_token);
       localStorage.setItem('user_role', role);
-      
+
       setRole(role);
       await checkAuth();
     } catch (error) {
@@ -62,12 +69,22 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     }
   };
 
-  const register = async (name: string, email: string, password: string, role: UserRole) => {
+  const register = async (
+    name: string,
+    email: string,
+    password: string,
+    role: UserRole
+  ) => {
     setLoading(true);
+
     try {
-      await api.post('/auth/register', { name, email, password, role });
-      // Registration successful — do NOT auto-login
-      // The RegisterPage will redirect to /login with a success message
+      await api.post('/api/v1/auth/register', {
+        name,
+        email,
+        password,
+        role,
+      });
+
       setLoading(false);
     } catch (error) {
       setLoading(false);
@@ -79,22 +96,25 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     localStorage.removeItem('access_token');
     localStorage.removeItem('refresh_token');
     localStorage.removeItem('user_role');
+
     setUser(null);
     setRole(null);
     setLoading(false);
   };
 
   return (
-    <AuthContext.Provider value={{
-      user,
-      role,
-      isAuthenticated: !!user,
-      loading,
-      login,
-      register,
-      logout,
-      checkAuth
-    }}>
+    <AuthContext.Provider
+      value={{
+        user,
+        role,
+        isAuthenticated: !!user,
+        loading,
+        login,
+        register,
+        logout,
+        checkAuth,
+      }}
+    >
       {children}
     </AuthContext.Provider>
   );
@@ -102,8 +122,10 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
 
 export const useAuth = () => {
   const context = useContext(AuthContext);
+
   if (context === undefined) {
     throw new Error('useAuth must be used within an AuthProvider');
   }
+
   return context;
 };
