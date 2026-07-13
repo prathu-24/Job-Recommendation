@@ -128,6 +128,7 @@ pip install -r requirements.txt
 # Run server in reload development mode
 uvicorn app.main:app --reload
 ```
+    
 The swagger UI docs are now live at `http://localhost:8000/docs`.
 
 #### 2. Frontend SPA Setup

@@ -10,7 +10,7 @@ export default defineConfig({
     host: true,
     proxy: {
       '/api': {
-        target: 'http://localhost:8000',
+        target: 'https://job-recommendation-8ccg.onrender.com',
         changeOrigin: true,
         secure: false,
       }
