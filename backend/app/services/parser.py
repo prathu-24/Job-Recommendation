@@ -4,16 +4,19 @@ from typing import Dict, Any, List, Optional
 
 # Graceful imports for PDF and DOCX parsing
 try:
+    # pyrefly: ignore [missing-import]
     import pdfplumber
 except ImportError:
     pdfplumber = None
 
 try:
+    # pyrefly: ignore [missing-import]
     import fitz  # PyMuPDF
 except ImportError:
     fitz = None
 
 try:
+    # pyrefly: ignore [missing-import]
     import docx
 except ImportError:
     docx = None
