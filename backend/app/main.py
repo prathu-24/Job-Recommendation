@@ -53,10 +53,12 @@ app = FastAPI(
 )
 
 # CORS Setup
+# Set allow_origins=["*"] and allow_credentials=False to allow easy deployment on Vercel/Netlify.
+# The app uses Authorization headers for JWTs and does not require credentials/cookies.
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=settings.BACKEND_CORS_ORIGINS,
-    allow_credentials=True,
+    allow_origins=["*"],
+    allow_credentials=False,
     allow_methods=["*"],
     allow_headers=["*"],
 )
