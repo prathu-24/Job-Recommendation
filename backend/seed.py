@@ -40,30 +40,41 @@ def seed_database():
         recruiter_pwd = security.get_password_hash("password123")
         admin_pwd = security.get_password_hash("password123")
         
-        cand = User(
-            name="John Doe",
-            email="candidate@example.com",
-            password=candidate_pwd,
-            role=UserRole.CANDIDATE
-        )
-        rec = User(
-            name="Alice Smith",
-            email="recruiter@example.com",
-            password=recruiter_pwd,
-            role=UserRole.RECRUITER
-        )
-        adm = User(
-            name="Super Admin",
-            email="admin@jobify.com",
-            password=admin_pwd,
-            role=UserRole.ADMIN
-        )
-        
-        db.add_all([cand, rec, adm])
-        db.commit()
-        db.refresh(cand)
-        db.refresh(rec)
-        db.refresh(adm)
+        cand = db.query(User).filter(User.email == "candidate@example.com").first()
+        if not cand:
+            cand = User(
+                name="John Doe",
+                email="candidate@example.com",
+                password=candidate_pwd,
+                role=UserRole.CANDIDATE
+            )
+            db.add(cand)
+            db.commit()
+            db.refresh(cand)
+
+        rec = db.query(User).filter(User.email == "recruiter@example.com").first()
+        if not rec:
+            rec = User(
+                name="Alice Smith",
+                email="recruiter@example.com",
+                password=recruiter_pwd,
+                role=UserRole.RECRUITER
+            )
+            db.add(rec)
+            db.commit()
+            db.refresh(rec)
+
+        adm = db.query(User).filter(User.email == "admin@jobify.com").first()
+        if not adm:
+            adm = User(
+                name="Super Admin",
+                email="admin@jobify.com",
+                password=admin_pwd,
+                role=UserRole.ADMIN
+            )
+            db.add(adm)
+            db.commit()
+            db.refresh(adm)
 
         # Create Profile for John Doe
         cand_profile = CandidateProfile(
